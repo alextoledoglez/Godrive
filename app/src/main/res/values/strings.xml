@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Godrive</string>
+    <string name="sign_in_action_text">Sign In</string>
+    <string name="sign_out_action_text">Sign Out</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="sign_in_title">Welcome to Godrive</string>
+    <string name="drive_title">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="db_successful_imported">DB successful imported!</string>
+    <string name="db_successful_exported">DB successful exported!</string>
+    <string name="db_importing_failure">DB importing failure</string>
+    <string name="db_exporting_failure">DB exporting failure</string>
+    <string name="file_list">File List</string>
+</resources>

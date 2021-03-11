@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/SignInFragment">
+
+    <fragment
+        android:id="@+id/SignInFragment"
+        android:name="com.example.godrive.fragments.SignInFragment"
+        android:label="@string/sign_in_title"
+        tools:layout="@layout/fragment_sign_in">
+
+        <action
+            android:id="@+id/action_SignInFragment_to_DriveFragment"
+            app:destination="@id/DriveFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/DriveFragment"
+        android:name="com.example.godrive.fragments.DriveFragment"
+        android:label="@string/drive_title"
+        tools:layout="@layout/fragment_drive">
+
+        <action
+            android:id="@+id/action_DriveFragment_to_SignInFragment"
+            app:destination="@id/SignInFragment" />
+    </fragment>
+</navigation>
