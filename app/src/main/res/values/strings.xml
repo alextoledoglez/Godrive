@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Godrive</string>
     <string name="sign_in_action_text">Sign In</string>
+    <string name="sign_in_picker_action_text">Sign In Picker</string>
     <string name="sign_out_action_text">Sign Out</string>
     <!-- Strings used for fragments for navigation -->
     <string name="sign_in_title">Welcome to Godrive</string>
@@ -11,4 +12,6 @@
     <string name="db_importing_failure">DB importing failure</string>
     <string name="db_exporting_failure">DB exporting failure</string>
     <string name="file_list">File List</string>
+    <string name="sign_in_canceled">Sign In canceled</string>
+    <string name="type_your_email_account">Type your email account</string>
 </resources>

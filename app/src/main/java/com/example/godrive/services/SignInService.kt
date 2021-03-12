@@ -26,15 +26,28 @@ class SignInService {
         var signInClient: GoogleSignInClient? = null
         private val TAG = SignInService::class.java.simpleName
 
+        private fun getSignInOptionsBuilder(): GoogleSignInOptions.Builder {
+            return GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(Scope(DriveScopes.DRIVE_FILE))
+        }
+
         /**
          * Starts a sign-in activity using [.REQUEST_CODE_SIGN_IN].
          */
-        fun requestSignIn(context: Context): Intent? {
-            Log.d(TAG, "Requesting sign-in")
-            val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestScopes(Scope(DriveScopes.DRIVE_FILE))
-                .build()
+        fun requestSignInPicker(context: Context): Intent? {
+            Log.d(TAG, "Requesting sign-in picker")
+            val signInOptions = getSignInOptionsBuilder().requestEmail().build()
+            signInClient = GoogleSignIn.getClient(context, signInOptions)
+            return signInClient?.signInIntent
+        }
+
+        /**
+         * Starts a sign-in activity using [.REQUEST_CODE_SIGN_IN].
+         */
+        fun requestSilentSignIn(context: Context, accountName: String): Intent? {
+            Log.d(TAG, "Requesting silent sign-in")
+            val signInOptions = getSignInOptionsBuilder().setAccountName(accountName).build()
             signInClient = GoogleSignIn.getClient(context, signInOptions)
             return signInClient?.signInIntent
         }
