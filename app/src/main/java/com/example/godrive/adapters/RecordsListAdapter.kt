@@ -7,9 +7,15 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.godrive.R
+import com.example.godrive.data.AppDatabase
 import com.example.godrive.data.models.Person
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
-class RecordsListAdapter(private val data: ArrayList<Person>) :
+class RecordsListAdapter(
+    private val appDatabase: AppDatabase?,
+    private val data: ArrayList<Person>
+) :
     RecyclerView.Adapter<RecordsListAdapter.ViewHolder>() {
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view)
 
@@ -31,9 +37,14 @@ class RecordsListAdapter(private val data: ArrayList<Person>) :
 
         val deleteImageButton = holderItemView.findViewById(R.id.image_button_delete) as ImageButton
         deleteImageButton.setOnClickListener {
-            data.removeAt(position)
-            notifyItemRemoved(position)
-            notifyItemRangeChanged(position, data.size)
+            doAsync {
+                appDatabase?.personDao()?.delete(person)
+                uiThread {
+                    data.removeAt(position)
+                    notifyItemRemoved(position)
+                    notifyDataSetChanged()
+                }
+            }
         }
     }
 

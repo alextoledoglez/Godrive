@@ -18,6 +18,7 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import java.util.*
 
+
 class SignInService {
 
     companion object {
@@ -33,7 +34,7 @@ class SignInService {
         }
 
         /**
-         * Starts a sign-in activity using [.REQUEST_CODE_SIGN_IN].
+         * Request sign in intent from a provided account.
          */
         fun requestSilentSignIn(context: Context, accountName: String): Intent? {
             Log.d(TAG, "Requesting silent sign-in")
@@ -43,7 +44,7 @@ class SignInService {
         }
 
         /**
-         * Starts a sign-in activity using [.REQUEST_CODE_SIGN_IN].
+         * Request sign in intent.
          */
         fun requestSignInPicker(context: Context): Intent? {
             Log.d(TAG, "Requesting sign-in picker")
@@ -69,6 +70,7 @@ class SignInService {
                         GsonFactory(),
                         credential
                     ).setApplicationName("Drive Test").build()
+                    //Once time you are sign in
                     findNavController(fragment).navigate(R.id.DriveFragment)
                 }
                 .addOnFailureListener { exception: Exception? ->

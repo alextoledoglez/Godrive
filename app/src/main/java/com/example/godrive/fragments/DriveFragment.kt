@@ -1,7 +1,6 @@
 package com.example.godrive.fragments
 
-import android.content.Context
-import android.net.Uri
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,17 +10,18 @@ import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.godrive.MainActivity
 import com.example.godrive.R
 import com.example.godrive.adapters.RecordsListAdapter
+import com.example.godrive.data.AppDatabase
 import com.example.godrive.data.dao.PersonDao
 import com.example.godrive.data.models.Person
 import com.example.godrive.services.DriveService
 import com.example.godrive.services.SignInService
 import com.example.godrive.utils.DataBaseUtils
+import com.example.godrive.utils.ToastUtils
+import org.jetbrains.anko.defaultSharedPreferences
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
-import java.io.File
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
@@ -30,15 +30,21 @@ class DriveFragment : Fragment() {
 
     private val TAG = DriveFragment::class.java.simpleName
 
+    private var driveFileId: String? = null
     private var driveService: DriveService? = null
-    private var dataBaseBackupFile: File? = null
+    private var sharedPreferences: SharedPreferences? = null
 
+    private var appDatabase: AppDatabase? = null
     private var personDao: PersonDao? = null
     private var persons: ArrayList<Person> = ArrayList()
 
     private var recyclerView: RecyclerView? = null
     private var recyclerAdapter: RecyclerView.Adapter<*>? = null
     private var recyclerLayoutManager: RecyclerView.LayoutManager? = null
+
+    private val unableToUploadFileToDrive = "Unable to upload file to drive."
+    private val unableToDownloadFileFromDrive = "Unable to download file from drive."
+    private val sharedPreferencesDriveFileId = "SHARED_PREFERENCES_DRIVE_FILE_ID"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,13 +60,11 @@ class DriveFragment : Fragment() {
         // The DriveServiceHelper encapsulates all REST API and SAF functionality.
         // Its instantiation is required before handling any onClick actions.
         driveService = DriveService(SignInService.driveService)
+        sharedPreferences = requireContext().defaultSharedPreferences
 
-        personDao = MainActivity.appDatabase?.personDao()
-        doAsync {
-            personDao?.selectAll()?.let { persons.addAll(it) }
-        }
+        loadData()
 
-        recyclerAdapter = RecordsListAdapter(persons)
+        recyclerAdapter = RecordsListAdapter(appDatabase, persons)
         recyclerLayoutManager = LinearLayoutManager(requireContext())
         recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_records).apply {
             adapter = recyclerAdapter
@@ -68,119 +72,90 @@ class DriveFragment : Fragment() {
         }
 
         view.findViewById<ImageButton>(R.id.add_btn).setOnClickListener {
-
-            val listToBeSaved: ArrayList<Person> = ArrayList()
-
-            val personOne = Person()
-            personOne.name = "First person name"
-            val personTwo = Person()
-            personTwo.name = "Second person name"
-            val personThree = Person()
-            personThree.name = "Third person name"
-            val personFour = Person()
-            personFour.name = "Four person name"
-
-            listToBeSaved.add(personOne)
-            listToBeSaved.add(personTwo)
-            listToBeSaved.add(personThree)
-            listToBeSaved.add(personFour)
-
-            doAsync {
-                val result = personDao?.insert(listToBeSaved)
-                uiThread {
-                    if (result?.isNotEmpty() == true && result.all { it > 0 }) {
-                        persons.addAll(listToBeSaved)
-                        recyclerAdapter?.notifyDataSetChanged()
-                    }
-                }
-            }
+            setData()
         }
 
         view.findViewById<ImageButton>(R.id.backup_btn).setOnClickListener {
-            DataBaseUtils.exportDBFrom(requireContext())?.let {
-                dataBaseBackupFile = it
-                driveService?.createDriveFileFrom(it)
-            }
+            uploadToDrive()
         }
 
         view.findViewById<ImageButton>(R.id.restore_btn).setOnClickListener {
-            dataBaseBackupFile?.let {
-                val fileUri: Uri? = it.toURI() as Uri?
-                openFileFromFilePicker(requireContext(), fileUri)
+            downloadFromDrive()
+        }
+    }
+
+    private fun loadData() {
+        appDatabase = AppDatabase.getInstance(requireContext())
+        personDao = appDatabase?.personDao()
+        doAsync {
+            personDao?.selectAll()?.let { persons.addAll(it) }
+        }
+    }
+
+    private fun setData() {
+        val listToBeSaved: ArrayList<Person> = ArrayList()
+
+        val personOne = Person()
+        personOne.name = "First person name"
+        val personTwo = Person()
+        personTwo.name = "Second person name"
+        val personThree = Person()
+        personThree.name = "Third person name"
+        val personFour = Person()
+        personFour.name = "Four person name"
+
+        listToBeSaved.add(personOne)
+        listToBeSaved.add(personTwo)
+        listToBeSaved.add(personThree)
+        listToBeSaved.add(personFour)
+
+        doAsync {
+            personDao?.clearTable()
+            persons.clear()
+            uiThread {
+                recyclerAdapter?.notifyDataSetChanged()
+            }
+            val result = personDao?.insert(listToBeSaved)
+            uiThread {
+                if (result?.isNotEmpty() == true && result.all { it > 0 }) {
+                    persons.addAll(listToBeSaved)
+                    recyclerAdapter?.notifyDataSetChanged()
+                }
             }
         }
     }
 
-    /**
-     * Opens a file from its `uri` returned from the Storage Access Framework file picker
-     * initiated by [.openFilePicker].
-     */
-    private fun openFileFromFilePicker(context: Context, uri: Uri?) {
-        Log.d(TAG, "Opening " + uri?.path)
-        driveService?.openFileUsingStorageAccessFramework(context.contentResolver, uri)
-            ?.addOnSuccessListener { nameAndContent ->
-                val name: String? = nameAndContent?.first
-                val content: String? = nameAndContent?.second
-                // Files opened through SAF cannot be modified.
-                DataBaseUtils.importDBFrom(requireContext())
+    private fun uploadToDrive() {
+        DataBaseUtils.exportDBFrom(requireContext())?.let { file ->
+            driveService?.uploadToDrive(file)?.addOnSuccessListener {
+                driveFileId = it
+                sharedPreferences?.edit()?.putString(sharedPreferencesDriveFileId, driveFileId)
+                    ?.apply()
+            }?.addOnFailureListener {
+                Log.e(TAG, unableToUploadFileToDrive, it)
+                ToastUtils.showLongText(requireContext(), unableToUploadFileToDrive)
             }
-            ?.addOnFailureListener { exception ->
-                Log.e(
-                    TAG,
-                    "Unable to open file from picker.",
-                    exception
-                )
-            }
+        }
     }
 
-    /**
-     * Opens the Storage Access Framework file picker using [.REQUEST_CODE_OPEN_DOCUMENT].
-     */
-/*    private fun openFilePicker(): Intent? {
-        Log.d(TAG, "Opening file picker.")
-        return driveService?.createFilePickerIntent()
-    }*/
-
-    /**
-     * Retrieves the title and content of a file identified by `fileId` and populates the UI.
-     */
-/*    private fun readFile(fileId: String?) {
-        Log.d(TAG, "Reading file $fileId")
-        driveService?.readFile(fileId)
-            ?.addOnSuccessListener { nameAndContent ->
-                val name: String? = nameAndContent?.first
-                val content: String? = nameAndContent?.second
-                fileTitleEditText?.setText(name)
-                docContentEditText?.setText(content)
-                setReadWriteMode(fileId)
+    private fun downloadFromDrive() {
+        driveFileId = sharedPreferences?.getString(sharedPreferencesDriveFileId, null)
+        val context = requireContext()
+        context.getExternalFilesDir(DataBaseUtils.FILE_DIRECTORY_TYPE)
+            ?.let { directoryFile ->
+                driveService?.downloadFromDrive(driveFileId, directoryFile)
+                    ?.addOnSuccessListener {
+                        appDatabase?.let {
+                            if (it.isOpen) {
+                                it.close()
+                            }
+                        }
+                        DataBaseUtils.importDBFrom(context)
+                        loadData()
+                    }?.addOnFailureListener {
+                        Log.e(TAG, unableToDownloadFileFromDrive, it)
+                        ToastUtils.showLongText(requireContext(), unableToDownloadFileFromDrive)
+                    }
             }
-            ?.addOnFailureListener { exception ->
-                Log.e(
-                    TAG,
-                    "Couldn't read file.",
-                    exception
-                )
-            }
-    }*/
-
-    /**
-     * Queries the Drive REST API for files visible to this app and lists them in the content view.
-     */
-/*    private fun query() {
-        Log.d(TAG, "Querying for files.")
-        driveService?.queryFiles()?.addOnSuccessListener { fileList ->
-            val builder = StringBuilder()
-            fileList?.files?.forEach { builder.append(it.name).append("\n") }
-            val fileNames = builder.toString()
-            fileTitleEditText?.setText(R.string.file_list)
-            docContentEditText?.setText(fileNames)
-            setReadOnlyMode()
-        }?.addOnFailureListener { exception ->
-            Log.e(
-                TAG,
-                "Unable to query files.",
-                exception
-            )
-        }
-    }*/
+    }
 }

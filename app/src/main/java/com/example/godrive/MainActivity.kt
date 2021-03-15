@@ -5,21 +5,15 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
-import com.example.godrive.data.AppDatabase
 import com.example.godrive.services.SignInService
 
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        var appDatabase: AppDatabase? = null
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
-        appDatabase = AppDatabase.getInstance(applicationContext)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -1,7 +1,6 @@
 package com.example.godrive.utils
 
 import android.content.Context
-import android.os.Environment
 import androidx.core.app.ActivityCompat.requestPermissions
 import com.example.godrive.R
 import com.example.godrive.data.AppDatabase
@@ -16,17 +15,18 @@ class DataBaseUtils {
     companion object {
 
         private val DB_NAME = AppDatabase.getDatabaseName()
-        private val DB_BACKUP_FORMAT = "%s.bak"
+        private val DB_BACKUP_FORMAT = "%s"
+        val FILE_DIRECTORY_TYPE = ""
 
         fun importDBFrom(context: Context) {
             try {
                 if (PermissionsUtils.haveStoragePermissionGranted(context)) {
-                    val sd: File = Environment.getExternalStorageDirectory()
-                    if (sd.canWrite()) {
+                    val sourceDirectory: File? = context.getExternalFilesDir(FILE_DIRECTORY_TYPE)
+                    if (sourceDirectory?.canWrite() == true) {
                         val backupDB: File = context.getDatabasePath(DB_NAME)
                         val backupDBPath: String =
                             java.lang.String.format(DB_BACKUP_FORMAT, DB_NAME)
-                        val currentDB = File(sd, backupDBPath)
+                        val currentDB = File(sourceDirectory, backupDBPath)
                         val src: FileChannel = FileInputStream(currentDB).channel
                         val dst: FileChannel = FileOutputStream(backupDB).channel
                         dst.transferFrom(src, 0, src.size())
@@ -49,11 +49,11 @@ class DataBaseUtils {
                 if (PermissionsUtils.haveStoragePermissionGranted(context)) {
                     val currentDB: File = context.getDatabasePath(DB_NAME)
                     val src: FileChannel = FileInputStream(currentDB).channel
-                    val sd: File = Environment.getExternalStorageDirectory()
-                    if (sd.canWrite()) {
+                    val sourceDirectory: File? = context.getExternalFilesDir(FILE_DIRECTORY_TYPE)
+                    if (sourceDirectory?.canWrite() == true) {
                         val backupDBPath: String =
                             java.lang.String.format(DB_BACKUP_FORMAT, DB_NAME)
-                        val backupDB = File(sd, backupDBPath)
+                        val backupDB = File(sourceDirectory, backupDBPath)
                         val dst: FileChannel = FileOutputStream(backupDB).channel
                         dst.transferFrom(src, 0, src.size())
                         src.close()
