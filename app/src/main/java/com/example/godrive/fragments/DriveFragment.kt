@@ -1,32 +1,44 @@
 package com.example.godrive.fragments
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.ImageButton
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.godrive.MainActivity
 import com.example.godrive.R
+import com.example.godrive.adapters.RecordsListAdapter
+import com.example.godrive.data.dao.PersonDao
+import com.example.godrive.data.models.Person
 import com.example.godrive.services.DriveService
 import com.example.godrive.services.SignInService
+import com.example.godrive.utils.DataBaseUtils
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import java.io.File
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
 class DriveFragment : Fragment() {
 
-    private val REQUEST_CODE_OPEN_DOCUMENT = 2
     private val TAG = DriveFragment::class.java.simpleName
 
-    private var openFileId: String? = null
-    private var fileTitleEditText: EditText? = null
-    private var docContentEditText: EditText? = null
     private var driveService: DriveService? = null
+    private var dataBaseBackupFile: File? = null
+
+    private var personDao: PersonDao? = null
+    private var persons: ArrayList<Person> = ArrayList()
+
+    private var recyclerView: RecyclerView? = null
+    private var recyclerAdapter: RecyclerView.Adapter<*>? = null
+    private var recyclerLayoutManager: RecyclerView.LayoutManager? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,51 +55,60 @@ class DriveFragment : Fragment() {
         // Its instantiation is required before handling any onClick actions.
         driveService = DriveService(SignInService.driveService)
 
-        // Store the EditText boxes to be updated when files are opened/created/modified.
-        // Store the EditText boxes to be updated when files are opened/created/modified.
-        fileTitleEditText = view.findViewById(R.id.file_title_edittext)
-        docContentEditText = view.findViewById(R.id.doc_content_edittext)
-
-        // Set the onClick listeners for the button bar.
-        // The result of the SAF Intent is handled in onActivityResult.
-        view.findViewById<View>(R.id.open_btn).setOnClickListener {
-            startActivityForResult(
-                openFilePicker(),
-                REQUEST_CODE_OPEN_DOCUMENT
-            )
+        personDao = MainActivity.appDatabase?.personDao()
+        doAsync {
+            personDao?.selectAll()?.let { persons.addAll(it) }
         }
-        view.findViewById<View>(R.id.create_btn).setOnClickListener { createFile() }
-        view.findViewById<View>(R.id.save_btn).setOnClickListener { saveFile() }
-        view.findViewById<View>(R.id.query_btn).setOnClickListener { query() }
-    }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
-        super.onActivityResult(requestCode, resultCode, resultData)
-        when (requestCode) {
-            REQUEST_CODE_OPEN_DOCUMENT -> if (resultCode == AppCompatActivity.RESULT_OK) {
-                resultData?.data?.let {
-                    openFileFromFilePicker(requireContext(), it)
+        recyclerAdapter = RecordsListAdapter(persons)
+        recyclerLayoutManager = LinearLayoutManager(requireContext())
+        recyclerView = view.findViewById<RecyclerView>(R.id.recycler_view_records).apply {
+            adapter = recyclerAdapter
+            layoutManager = recyclerLayoutManager
+        }
+
+        view.findViewById<ImageButton>(R.id.add_btn).setOnClickListener {
+
+            val listToBeSaved: ArrayList<Person> = ArrayList()
+
+            val personOne = Person()
+            personOne.name = "First person name"
+            val personTwo = Person()
+            personTwo.name = "Second person name"
+            val personThree = Person()
+            personThree.name = "Third person name"
+            val personFour = Person()
+            personFour.name = "Four person name"
+
+            listToBeSaved.add(personOne)
+            listToBeSaved.add(personTwo)
+            listToBeSaved.add(personThree)
+            listToBeSaved.add(personFour)
+
+            doAsync {
+                val result = personDao?.insert(listToBeSaved)
+                uiThread {
+                    if (result?.isNotEmpty() == true && result.all { it > 0 }) {
+                        persons.addAll(listToBeSaved)
+                        recyclerAdapter?.notifyDataSetChanged()
+                    }
                 }
             }
         }
-    }
 
-    /**
-     * Updates the UI to read-only mode.
-     */
-    private fun setReadOnlyMode() {
-        fileTitleEditText?.isEnabled = false
-        docContentEditText?.isEnabled = false
-        openFileId = null
-    }
+        view.findViewById<ImageButton>(R.id.backup_btn).setOnClickListener {
+            DataBaseUtils.exportDBFrom(requireContext())?.let {
+                dataBaseBackupFile = it
+                driveService?.createDriveFileFrom(it)
+            }
+        }
 
-    /**
-     * Updates the UI to read/write mode on the document identified by `fileId`.
-     */
-    private fun setReadWriteMode(fileId: String?) {
-        fileTitleEditText?.isEnabled = true
-        docContentEditText?.isEnabled = true
-        openFileId = fileId
+        view.findViewById<ImageButton>(R.id.restore_btn).setOnClickListener {
+            dataBaseBackupFile?.let {
+                val fileUri: Uri? = it.toURI() as Uri?
+                openFileFromFilePicker(requireContext(), fileUri)
+            }
+        }
     }
 
     /**
@@ -100,10 +121,8 @@ class DriveFragment : Fragment() {
             ?.addOnSuccessListener { nameAndContent ->
                 val name: String? = nameAndContent?.first
                 val content: String? = nameAndContent?.second
-                fileTitleEditText?.setText(name)
-                docContentEditText?.setText(content)
                 // Files opened through SAF cannot be modified.
-                setReadOnlyMode()
+                DataBaseUtils.importDBFrom(requireContext())
             }
             ?.addOnFailureListener { exception ->
                 Log.e(
@@ -117,30 +136,15 @@ class DriveFragment : Fragment() {
     /**
      * Opens the Storage Access Framework file picker using [.REQUEST_CODE_OPEN_DOCUMENT].
      */
-    private fun openFilePicker(): Intent? {
+/*    private fun openFilePicker(): Intent? {
         Log.d(TAG, "Opening file picker.")
         return driveService?.createFilePickerIntent()
-    }
-
-    /**
-     * Creates a new file via the Drive REST API.
-     */
-    private fun createFile() {
-        Log.d(TAG, "Creating a file.")
-        driveService?.createFile()?.addOnSuccessListener { fileId -> readFile(fileId) }
-            ?.addOnFailureListener { exception ->
-                Log.e(
-                    TAG,
-                    "Couldn't create file.",
-                    exception
-                )
-            }
-    }
+    }*/
 
     /**
      * Retrieves the title and content of a file identified by `fileId` and populates the UI.
      */
-    private fun readFile(fileId: String?) {
+/*    private fun readFile(fileId: String?) {
         Log.d(TAG, "Reading file $fileId")
         driveService?.readFile(fileId)
             ?.addOnSuccessListener { nameAndContent ->
@@ -157,29 +161,12 @@ class DriveFragment : Fragment() {
                     exception
                 )
             }
-    }
-
-    /**
-     * Saves the currently opened file created via [.createFile] if one exists.
-     */
-    private fun saveFile() {
-        Log.d(TAG, "Saving $openFileId")
-        val fileName: String = fileTitleEditText?.text.toString()
-        val fileContent: String = docContentEditText?.text.toString()
-        driveService?.saveFile(openFileId, fileName, fileContent)
-            ?.addOnFailureListener { exception ->
-                Log.e(
-                    TAG,
-                    "Unable to save file via REST.",
-                    exception
-                )
-            }
-    }
+    }*/
 
     /**
      * Queries the Drive REST API for files visible to this app and lists them in the content view.
      */
-    private fun query() {
+/*    private fun query() {
         Log.d(TAG, "Querying for files.")
         driveService?.queryFiles()?.addOnSuccessListener { fileList ->
             val builder = StringBuilder()
@@ -195,5 +182,5 @@ class DriveFragment : Fragment() {
                 exception
             )
         }
-    }
+    }*/
 }

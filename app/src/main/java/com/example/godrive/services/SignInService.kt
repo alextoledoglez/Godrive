@@ -35,9 +35,9 @@ class SignInService {
         /**
          * Starts a sign-in activity using [.REQUEST_CODE_SIGN_IN].
          */
-        fun requestSignInPicker(context: Context): Intent? {
-            Log.d(TAG, "Requesting sign-in picker")
-            val signInOptions = getSignInOptionsBuilder().requestEmail().build()
+        fun requestSilentSignIn(context: Context, accountName: String): Intent? {
+            Log.d(TAG, "Requesting silent sign-in")
+            val signInOptions = getSignInOptionsBuilder().setAccountName(accountName).build()
             signInClient = GoogleSignIn.getClient(context, signInOptions)
             return signInClient?.signInIntent
         }
@@ -45,9 +45,9 @@ class SignInService {
         /**
          * Starts a sign-in activity using [.REQUEST_CODE_SIGN_IN].
          */
-        fun requestSilentSignIn(context: Context, accountName: String): Intent? {
-            Log.d(TAG, "Requesting silent sign-in")
-            val signInOptions = getSignInOptionsBuilder().setAccountName(accountName).build()
+        fun requestSignInPicker(context: Context): Intent? {
+            Log.d(TAG, "Requesting sign-in picker")
+            val signInOptions = getSignInOptionsBuilder().requestEmail().build()
             signInClient = GoogleSignIn.getClient(context, signInOptions)
             return signInClient?.signInIntent
         }
@@ -72,13 +72,9 @@ class SignInService {
                     findNavController(fragment).navigate(R.id.DriveFragment)
                 }
                 .addOnFailureListener { exception: Exception? ->
+                    Log.e(TAG, "Unable to sign in.", exception)
                     signInClient = null
                     driveService = null
-                    Log.e(
-                        TAG,
-                        "Unable to sign in.",
-                        exception
-                    )
                 }
         }
     }

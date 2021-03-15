@@ -1,10 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp"
-    tools:context=".fragments.SignInFragment">
+    tools:context=".fragments.DriveFragment">
+
+    <LinearLayout
+        android:id="@+id/btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/recycler_view_records"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/add_btn"
+            android:layout_width="@dimen/none"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/half_default_material_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/add"
+            android:src="@drawable/ic_add_record" />
+
+        <ImageButton
+            android:id="@+id/backup_btn"
+            android:layout_width="@dimen/none"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/half_default_material_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/backup"
+            android:src="@drawable/ic_backup" />
+
+        <ImageButton
+            android:id="@+id/restore_btn"
+            android:layout_width="@dimen/none"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/half_default_material_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/restore"
+            android:src="@drawable/ic_restore" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_records"
+        android:layout_width="@dimen/none"
+        android:layout_height="@dimen/none"
+        android:layout_margin="@dimen/half_default_material_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_layout" />
+
+
+    <!--    <Button
+            android:id="@+id/open_btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="Attach file"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.875"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/edit_text_name"
+            app:layout_constraintVertical_bias="1.0" />-->
+    <!--
 
     <EditText
         android:id="@+id/file_title_edittext"
@@ -58,5 +122,5 @@
             android:layout_weight="1"
             android:text="Query" />
 
-    </LinearLayout>
-</RelativeLayout>
+    </LinearLayout>-->
+</androidx.constraintlayout.widget.ConstraintLayout>

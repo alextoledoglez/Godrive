@@ -14,4 +14,11 @@
     <string name="file_list">File List</string>
     <string name="sign_in_canceled">Sign In canceled</string>
     <string name="type_your_email_account">Type your email account</string>
+    <string name="add">Add</string>
+    <string name="backup">Backup</string>
+    <string name="restore">Restore</string>
+    <string name="attachment">Attachment</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
 </resources>

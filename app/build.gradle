@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -42,6 +43,10 @@ android {
     }
 }
 
+ext {
+    room_version = "2.2.6"
+}
+
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -63,6 +68,13 @@ dependencies {
         exclude group: 'org.apache.httpcomponents'
     }
     //---End of Google Drive API dependencies----------------
+
+    //Anko
+    implementation 'org.jetbrains.anko:anko-common:0.10.8'
+
+    // Room
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
 
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <EditText
+        android:id="@+id/edit_text_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:autofillHints=""
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toTopOf="@+id/edit_text_phone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="LabelFor,TextFields" />
+
+    <EditText
+        android:id="@+id/edit_text_phone"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:autofillHints=""
+        android:inputType="phone"
+        app:layout_constraintBottom_toTopOf="@+id/edit_text_email"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_name"
+        tools:ignore="LabelFor,TextFields" />
+
+    <EditText
+        android:id="@+id/edit_text_email"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:autofillHints=""
+        android:inputType="textEmailAddress"
+        app:layout_constraintBottom_toTopOf="@+id/edit_text_date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_phone"
+        tools:ignore="LabelFor,TextFields" />
+
+    <EditText
+        android:id="@+id/edit_text_date"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:autofillHints=""
+        android:inputType="date"
+        app:layout_constraintBottom_toTopOf="@+id/edit_text_description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_email"
+        tools:ignore="LabelFor,TextFields" />
+
+    <EditText
+        android:id="@+id/edit_text_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:autofillHints=""
+        android:inputType="text"
+        app:layout_constraintBottom_toTopOf="@+id/btn_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_date"
+        tools:ignore="LabelFor,TextFields" />
+
+    <LinearLayout
+        android:id="@+id/btn_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/half_default_material_margin"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edit_text_description">
+
+        <ImageButton
+            android:id="@+id/add_btn"
+            android:layout_width="@dimen/none"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/half_default_material_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/attachment"
+            android:src="@drawable/ic_attachment" />
+
+        <ImageButton
+            android:id="@+id/backup_btn"
+            android:layout_width="@dimen/none"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/half_default_material_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/save"
+            android:src="@drawable/ic_check" />
+
+        <ImageButton
+            android:id="@+id/restore_btn"
+            android:layout_width="@dimen/none"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/half_default_material_margin"
+            android:layout_weight="1"
+            android:contentDescription="@string/cancel"
+            android:src="@drawable/ic_cancel" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

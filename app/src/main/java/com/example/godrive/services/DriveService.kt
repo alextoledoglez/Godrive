@@ -6,7 +6,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
-import com.google.api.client.http.ByteArrayContent
+import com.google.api.client.http.InputStreamContent
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.model.FileList
@@ -32,15 +32,16 @@ class DriveService(driveService: Drive?) {
     private var mDriveService: Drive? = driveService
 
     /**
-     * Creates a text file in the user's My Drive folder and returns its file ID.
+     * Creates a file in the user's My Drive folder based on a local File and returns its file ID.
      */
-    fun createFile(): Task<String?>? {
+    fun createDriveFileFrom(file: java.io.File): Task<String?>? {
         return Tasks.call(mExecutor, {
-            val metadata: File = File()
+            val driveFile: File = File()
                 .setParents(Collections.singletonList("root"))
                 .setMimeType("text/plain")
-                .setName("Untitled file")
-            val googleFile: File = mDriveService?.files()?.create(metadata)?.execute()
+                .setName(file.name)
+            val content = InputStreamContent(null, file.inputStream())
+            val googleFile: File = mDriveService?.files()?.create(driveFile, content)?.execute()
                 ?: throw IOException("Null result when requesting file creation.")
             googleFile.id
         })
@@ -50,7 +51,7 @@ class DriveService(driveService: Drive?) {
      * Opens the file identified by `fileId` and returns a [Pair] of its name and
      * contents.
      */
-    fun readFile(fileId: String?): Task<Pair<String?, String?>?>? {
+/*    fun readFile(fileId: String?): Task<Pair<String?, String?>?>? {
         return Tasks.call(mExecutor, {
 
             // Retrieve the metadata as a File object.
@@ -68,22 +69,7 @@ class DriveService(driveService: Drive?) {
                 }
             }
         })
-    }
-
-    /**
-     * Updates the file identified by `fileId` with the given `name` and `content`.
-     */
-    fun saveFile(fileId: String?, name: String?, content: String?): Task<Void?>? {
-        return Tasks.call(mExecutor, {
-            // Create a File containing any metadata changes.
-            val metadata: File = File().setName(name)
-            // Convert content to an AbstractInputStreamContent instance.
-            val contentStream = ByteArrayContent.fromString("text/plain", content)
-            // Update the metadata and contents.
-            mDriveService?.files()?.update(fileId, metadata, contentStream)?.execute()
-            null
-        })
-    }
+    }*/
 
     /**
      * Returns a [FileList] containing all the visible files in the user's My Drive.
