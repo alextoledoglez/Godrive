@@ -44,8 +44,9 @@ class DriveService(driveService: Drive?) {
      */
     fun downloadFromDrive(driveFileId: String?, directoryFile: java.io.File): Task<*>? {
         return Tasks.call(mExecutor, {
-            val driveFile: File? = mDriveService?.files()?.get(driveFileId)?.execute()
-            val file = File(directoryFile, driveFile?.name)
+            val driveFile: File = mDriveService?.files()?.get(driveFileId)?.execute()
+                ?: throw Exception("Unable to open drive file.")
+            val file = File(directoryFile, driveFile.name)
             val fileOutputStream = FileOutputStream(file)
             mDriveService?.files()?.get(driveFileId)?.executeMediaAndDownloadTo(fileOutputStream)
                 ?: throw Exception("Unable to download drive file.")
